@@ -98,10 +98,13 @@ quizgenie-claude/
 ├── routes/               # Route handlers (auth, buckets, quizzes, admin)
 ├── templates/            # Jinja2 HTML templates
 ├── static/               # CSS
+├── requirements.txt      # Python dependencies
+├── .env.template         # Environment variable template — copy to .env
 ├── data/                 # SQLite database (created at runtime, mount as volume)
 ├── uploads/              # Uploaded files (created at runtime, mount as volume)
 ├── Dockerfile
-└── docker-compose.yml
+├── docker-compose.yml
+└── .dockerignore
 ```
 
 ---

@@ -73,11 +73,10 @@ At a minimum, the system should:
 - make the extracted content available for downstream quiz generation and evaluation
 
 Possible future enhancements:
-- document type tracking
 - chunking and embeddings
 - duplicate detection
 - document reprocessing
-- per-document status and error reporting
+- per-document error details
 
 ---
 
@@ -158,74 +157,66 @@ Unless explicitly needed, avoid over-engineering the first version with:
 
 ---
 
-## Recommended Data Model
-
-This is a suggested conceptual model and can be adapted to the framework used.
+## Data Model
 
 ### User
-Fields may include:
 - id
-- username
-- password hash
+- username (unique)
+- password_hash
 - is_admin
 - created_at
 - updated_at
 
 ### Bucket
-Fields may include:
 - id
 - name
-- description
-- created_by
+- description (nullable)
+- created_by → User
 - created_at
 - updated_at
 
 ### Document
-Fields may include:
 - id
-- bucket_id
-- filename
-- content_type
+- bucket_id → Bucket
+- filename (sanitized)
+- stored_path (on-disk path: `uploads/{bucket_id}/{uuid}_{filename}`)
+- content_type (`pdf`, `docx`, or `txt`)
 - extracted_text
-- processing_status
+- processing_status (`pending`, `done`, `error`)
 - created_at
-- updated_at
 
 ### Quiz
-Fields may include:
 - id
-- bucket_id
-- created_by
+- bucket_id → Bucket
+- created_by → User
 - title
 - created_at
-- updated_at
 
 ### QuizQuestion
-Fields may include:
 - id
-- quiz_id
+- quiz_id → Quiz
 - question_text
-- question_type
-- answer_key
+- question_type (`multiple_choice` or `true_false`)
+- options_json (JSON string: `{"A": "...", "B": "..."}` — empty for true/false)
+- answer_key (e.g. `"B"`, `"True"`, `"False"`)
 - explanation
-- source_reference
+- position (ordering index within the quiz)
 
 ### QuizAttempt
-Fields may include:
 - id
-- quiz_id
-- user_id
-- score
-- submitted_at
+- quiz_id → Quiz
+- user_id → User
+- score (float, 0–100)
+- total_questions
+- submitted_at (null until submitted)
+- created_at
 
 ### QuizAttemptAnswer
-Fields may include:
 - id
-- quiz_attempt_id
-- quiz_question_id
+- attempt_id → QuizAttempt
+- question_id → QuizQuestion
 - user_answer
 - is_correct
-- evaluation_notes
 
 ---
 
@@ -300,19 +291,27 @@ When building features for this project:
 
 ---
 
+## Decisions Made
+
+These were open questions that have been resolved in the current implementation:
+
+- **Supported file types:** PDF, DOCX, TXT
+- **Non-admin bucket creation:** Yes — all authenticated users can create buckets
+- **Bucket visibility:** Shared — all authenticated users see all buckets
+- **Quiz persistence:** Quizzes are generated and saved; they persist and can be retaken
+- **Question types:** Multiple choice (A/B/C/D) and true/false
+- **Answer explanations:** Shown per-question on the results page after submission
+- **Document storage:** Full extracted text stored in the database; no chunks or embeddings
+- **Document reprocessing:** Not supported in the current version
+- **Evaluation method:** Deterministic server-side comparison (user answer vs. `answer_key`)
+
 ## Open Questions / Future Decisions
 
-These items may need refinement later:
-
-- Which file types are supported for upload?
-- Should non-admin users be able to create buckets?
-- Are buckets private to a user, shared, or global?
-- Should quizzes be regenerated each time or saved persistently?
-- What question types should be supported in MVP?
-- How should answer explanations be shown?
-- Should the app store document chunks or embeddings?
-- Should the app support reprocessing documents when prompts change?
-- Should evaluation be deterministic, rubric-based, LLM-based, or hybrid?
+- Should buckets have per-user access controls, or remain globally shared?
+- Should the number of quiz questions be configurable per generation?
+- Should the app support deleting buckets or documents?
+- Should quiz attempts be visible to other users (leaderboard, shared results)?
+- Should the app support reprocessing documents when extraction fails?
 
 ---
 
