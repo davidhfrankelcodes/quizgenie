@@ -91,11 +91,7 @@ The application should be able to:
 - avoid generating questions that are not supported by the bucket content
 - support iterative improvement of quiz quality over time
 
-Possible question formats:
-- multiple choice
-- true/false
-- short answer
-- explanation-based questions
+Question format: multiple choice (A/B/C/D), 10 questions per quiz.
 
 #### Evaluation
 The application should:
@@ -197,9 +193,9 @@ Unless explicitly needed, avoid over-engineering the first version with:
 - id
 - quiz_id → Quiz
 - question_text
-- question_type (`multiple_choice` or `true_false`)
-- options_json (JSON string: `{"A": "...", "B": "..."}` — empty for true/false)
-- answer_key (e.g. `"B"`, `"True"`, `"False"`)
+- question_type (`multiple_choice`)
+- options_json (JSON string: `{"A": "...", "B": "...", "C": "...", "D": "..."}`)
+- answer_key (`"A"`, `"B"`, `"C"`, or `"D"`)
 - explanation
 - position (ordering index within the quiz)
 
@@ -300,7 +296,7 @@ These were open questions that have been resolved in the current implementation:
 - **Non-admin bucket creation:** Yes — all authenticated users can create buckets
 - **Bucket visibility:** Shared — all authenticated users see all buckets
 - **Quiz persistence:** Quizzes are generated and saved; they persist and can be retaken
-- **Question types:** Multiple choice (A/B/C/D) and true/false
+- **Question types:** Multiple choice only (A/B/C/D), 10 questions per quiz
 - **Quiz difficulty:** Three levels — Easy, Medium, Hard — selectable per quiz generation. Difficulty is baked into the Claude prompt and reflected in the quiz title and UI. Easy = broad recall; Medium = applied understanding and scenario reasoning; Hard = nuanced distinctions, edge cases, synthesis across the material.
 - **Answer explanations:** Shown per-question on the results page after submission
 - **Document storage:** Full extracted text stored in the database; no chunks or embeddings

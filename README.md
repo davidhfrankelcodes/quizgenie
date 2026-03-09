@@ -97,7 +97,7 @@ quizgenie-claude/
 ├── app_templates.py      # Shared Jinja2 templates instance
 ├── routes/               # Route handlers (auth, buckets, quizzes, admin)
 ├── templates/            # Jinja2 HTML templates
-├── static/               # CSS
+├── static/               # CSS and favicon
 ├── requirements.txt      # Python dependencies
 ├── .env.template         # Environment variable template — copy to .env
 ├── data/                 # SQLite database (created at runtime, mount as volume)
