@@ -128,6 +128,7 @@
     </div>
     <p class="fw-semibold mb-1" id="loading-title">Please wait…</p>
     <p class="text-muted small mb-0" id="loading-subtitle"></p>
+    <p class="text-muted small mb-0 mt-1" id="loading-timer">0s</p>
   </div>
 </div>
 
@@ -136,6 +137,18 @@
     var overlay = document.getElementById('loading-overlay');
     var title   = document.getElementById('loading-title');
     var sub     = document.getElementById('loading-subtitle');
+
+    var timerEl = document.getElementById('loading-timer');
+    var timerInterval = null;
+
+    function startTimer() {
+      var seconds = 0;
+      timerEl.textContent = '0s';
+      timerInterval = setInterval(function () {
+        seconds += 1;
+        timerEl.textContent = seconds + 's';
+      }, 1000);
+    }
 
     document.querySelectorAll('form[data-loading]').forEach(function (form) {
       form.addEventListener('submit', function () {
@@ -146,6 +159,7 @@
         form.querySelectorAll('[type="submit"]').forEach(function (btn) {
           btn.disabled = true;
         });
+        startTimer();
       });
     });
   })();
