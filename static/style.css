@@ -19,6 +19,19 @@ body {
 /* Quiz question cards */
 .quiz-question {
   border-left: 4px solid #0d6efd;
+  transition: border-left-color 0.2s ease;
+}
+
+.quiz-question.question-correct  { border-left-color: #198754; }
+.quiz-question.question-incorrect { border-left-color: #dc3545; }
+
+/* Per-option highlights after Check */
+.form-check.option-correct label  { color: #198754; font-weight: 600; }
+.form-check.option-incorrect label { color: #dc3545; font-weight: 600; }
+
+/* Inline check feedback */
+.check-feedback {
+  font-size: 0.9rem;
 }
 
 /* Results answer cards */

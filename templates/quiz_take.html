@@ -22,46 +22,40 @@
       {% else %}bg-warning text-dark{% endif %}">
       {{ quiz.difficulty | capitalize }}
     </span>
-    &bull; Answer all questions, then click Submit.
+    &bull; Select an answer, click <strong>Check</strong> to see feedback, then Submit when done.
   </p>
 </div>
 
 <form method="post" action="/quizzes/{{ quiz.id }}/submit/{{ attempt_id }}" novalidate
       data-loading="Submitting quiz…|Scoring your answers.">
   {% for q in questions %}
-  <div class="card shadow-sm mb-3 quiz-question">
+  <div class="card shadow-sm mb-3 quiz-question"
+       data-question-id="{{ q.id }}"
+       data-answer-key="{{ q.answer_key }}">
     <div class="card-body">
       <p class="fw-semibold mb-3">
         <span class="badge bg-primary me-2">{{ loop.index }}</span>
         {{ q.question_text }}
       </p>
 
-      {% if q.question_type == "multiple_choice" %}
+      <div class="options-group">
         {% for key, val in q.options.items() %}
         <div class="form-check mb-2">
           <input class="form-check-input" type="radio"
-                 name="q_{{ q.id }}" id="q{{ q.id }}_{{ key }}"
-                 value="{{ key }}" required>
+                 name="q_{{ q.id }}" id="q{{ q.id }}_{{ key }}" value="{{ key }}">
           <label class="form-check-label" for="q{{ q.id }}_{{ key }}">
             <strong>{{ key }}.</strong> {{ val }}
           </label>
         </div>
         {% endfor %}
+      </div>
 
-      {% elif q.question_type == "true_false" %}
-        <div class="form-check mb-2">
-          <input class="form-check-input" type="radio"
-                 name="q_{{ q.id }}" id="q{{ q.id }}_true"
-                 value="True" required>
-          <label class="form-check-label" for="q{{ q.id }}_true">True</label>
-        </div>
-        <div class="form-check mb-2">
-          <input class="form-check-input" type="radio"
-                 name="q_{{ q.id }}" id="q{{ q.id }}_false"
-                 value="False" required>
-          <label class="form-check-label" for="q{{ q.id }}_false">False</label>
-        </div>
-      {% endif %}
+      <div class="mt-3 d-flex align-items-center gap-3 flex-wrap">
+        <button type="button" class="btn btn-primary btn-sm check-btn" disabled>
+          <i class="bi bi-check2-circle me-1"></i>Check
+        </button>
+        <div class="check-feedback"></div>
+      </div>
     </div>
   </div>
   {% endfor %}
@@ -75,4 +69,87 @@
     </a>
   </div>
 </form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.querySelectorAll('.quiz-question').forEach(function (card) {
+    var answerKey = card.dataset.answerKey.trim();
+    var radios    = card.querySelectorAll('input[type="radio"]');
+    var checkBtn  = card.querySelector('.check-btn');
+    var feedback  = card.querySelector('.check-feedback');
+
+    // Un-grey the Check button as soon as the user picks an option
+    radios.forEach(function (radio) {
+      radio.addEventListener('change', function () {
+        checkBtn.disabled = false;
+      });
+    });
+
+    checkBtn.addEventListener('click', function () {
+      var selected = card.querySelector('input[type="radio"]:checked');
+      if (!selected) return;
+
+      var userAnswer = selected.value.trim();
+      var isCorrect  = userAnswer === answerKey;
+
+      // Resolve the correct option's label text NOW, before any DOM changes,
+      // by walking the radios array — avoids querySelector matching the hidden
+      // input we're about to append.
+      var correctLabel = answerKey;
+      radios.forEach(function (r) {
+        if (r.value.trim() === answerKey) {
+          var lbl = r.closest('.form-check').querySelector('label');
+          if (lbl) correctLabel = lbl.textContent.trim();
+        }
+      });
+
+      // Lock: disable all radios so the choice can't be changed.
+      // Disabled inputs are excluded from form submission, so add a hidden
+      // input to carry the value through to the server.
+      radios.forEach(function (r) { r.disabled = true; });
+      var hidden   = document.createElement('input');
+      hidden.type  = 'hidden';
+      hidden.name  = 'q_' + card.dataset.questionId;
+      hidden.value = userAnswer;
+      card.appendChild(hidden);
+
+      // Update the Check button to show the result
+      checkBtn.disabled = true;
+      checkBtn.classList.remove('btn-primary');
+      if (isCorrect) {
+        checkBtn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i>Correct';
+        checkBtn.classList.add('btn-success');
+      } else {
+        checkBtn.innerHTML = '<i class="bi bi-x-circle-fill me-1"></i>Incorrect';
+        checkBtn.classList.add('btn-danger');
+      }
+
+      // Highlight correct option green, wrong selection red
+      radios.forEach(function (r) {
+        var row = r.closest('.form-check');
+        if (r.value.trim() === answerKey) {
+          row.classList.add('option-correct');
+        } else if (r.value.trim() === userAnswer && !isCorrect) {
+          row.classList.add('option-incorrect');
+        }
+      });
+
+      // Show inline feedback
+      if (isCorrect) {
+        feedback.innerHTML =
+          '<i class="bi bi-check-circle-fill text-success me-1"></i>' +
+          '<span class="text-success fw-semibold">Correct!</span>';
+      } else {
+        feedback.innerHTML =
+          '<i class="bi bi-x-circle-fill text-danger me-1"></i>' +
+          '<span class="text-danger fw-semibold">Incorrect.</span> ' +
+          '<span class="text-muted ms-1">Correct: <strong>' + correctLabel + '</strong></span>';
+      }
+
+      // Shift the card border to reflect the result
+      card.classList.add(isCorrect ? 'question-correct' : 'question-incorrect');
+    });
+  });
+</script>
 {% endblock %}

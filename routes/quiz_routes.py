@@ -32,6 +32,7 @@ async def take_quiz_get(
             "question_text": q.question_text,
             "question_type": q.question_type,
             "options": json.loads(q.options_json),
+            "answer_key": q.answer_key,
             "position": q.position,
         })
 
