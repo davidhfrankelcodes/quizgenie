@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block title %}{{ bucket.name }} - QuizGenie{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
+    <li class="breadcrumb-item active">{{ bucket.name }}</li>
+  </ol>
+</nav>
+
+<div class="mb-4">
+  <h1 class="h3 mb-1">
+    <i class="bi bi-folder2-open me-2 text-primary"></i>{{ bucket.name }}
+  </h1>
+  {% if bucket.description %}
+  <p class="text-muted mb-0">{{ bucket.description }}</p>
+  {% endif %}
+  <small class="text-muted">
+    Created by {{ bucket.creator.username }} on {{ bucket.created_at.strftime("%B %d, %Y") }}
+  </small>
+</div>
+
+<div class="row g-4">
+  <!-- Documents -->
+  <div class="col-md-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+          <i class="bi bi-file-earmark-text me-2"></i>Documents
+        </h5>
+        <span class="badge bg-secondary">{{ documents | length }}</span>
+      </div>
+
+      {% if documents %}
+      <ul class="list-group list-group-flush">
+        {% for doc in documents %}
+        <li class="list-group-item">
+          <div class="d-flex justify-content-between align-items-center">
+            <div class="text-truncate me-2">
+              {% if doc.content_type == "pdf" %}
+              <i class="bi bi-file-earmark-pdf text-danger me-2"></i>
+              {% elif doc.content_type == "docx" %}
+              <i class="bi bi-file-earmark-word text-primary me-2"></i>
+              {% else %}
+              <i class="bi bi-file-earmark-text text-secondary me-2"></i>
+              {% endif %}
+              <span title="{{ doc.filename }}">{{ doc.filename }}</span>
+            </div>
+            <span class="badge flex-shrink-0
+              {% if doc.processing_status == 'done' %}bg-success
+              {% elif doc.processing_status == 'error' %}bg-danger
+              {% else %}bg-warning text-dark{% endif %}">
+              {% if doc.processing_status == 'done' %}
+              <i class="bi bi-check me-1"></i>ready
+              {% elif doc.processing_status == 'error' %}
+              <i class="bi bi-x me-1"></i>error
+              {% else %}
+              <i class="bi bi-hourglass-split me-1"></i>pending
+              {% endif %}
+            </span>
+          </div>
+          <small class="text-muted">{{ doc.created_at.strftime("%b %d, %Y %H:%M") }}</small>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <div class="card-body text-muted">
+        <i class="bi bi-cloud-upload me-2"></i>No documents yet — upload one below.
+      </div>
+      {% endif %}
+
+      <div class="card-footer">
+        <form method="post" action="/buckets/{{ bucket.id }}/upload" enctype="multipart/form-data">
+          <label class="form-label small fw-semibold mb-1">Upload Document</label>
+          <div class="input-group">
+            <input type="file" class="form-control form-control-sm" name="file"
+                   accept=".pdf,.docx,.txt" required>
+            <button type="submit" class="btn btn-sm btn-outline-primary">
+              <i class="bi bi-upload me-1"></i>Upload
+            </button>
+          </div>
+          <div class="form-text">Supported: PDF, DOCX, TXT</div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quizzes -->
+  <div class="col-md-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+          <i class="bi bi-patch-question me-2"></i>Quizzes
+        </h5>
+        <span class="badge bg-info text-dark">{{ quizzes | length }}</span>
+      </div>
+
+      {% if quizzes %}
+      <ul class="list-group list-group-flush">
+        {% for quiz in quizzes %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <div>
+            <div class="fw-semibold">{{ quiz.title }}</div>
+            <small class="text-muted">
+              <i class="bi bi-list-ol me-1"></i>{{ quiz.questions | length }} questions
+              &bull; {{ quiz.created_at.strftime("%b %d, %Y") }}
+            </small>
+          </div>
+          <a href="/quizzes/{{ quiz.id }}/take" class="btn btn-sm btn-outline-primary ms-2">
+            <i class="bi bi-play me-1"></i>Take
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <div class="card-body text-muted">
+        <i class="bi bi-patch-question me-2"></i>No quizzes yet — generate one below.
+      </div>
+      {% endif %}
+
+      <div class="card-footer">
+        <form method="post" action="/buckets/{{ bucket.id }}/generate">
+          {% set has_ready_docs = documents | selectattr("processing_status", "eq", "done") | list %}
+          <button type="submit" class="btn btn-success w-100"
+                  {% if not has_ready_docs %}disabled title="Upload and process documents first"{% endif %}>
+            <i class="bi bi-magic me-2"></i>Generate Quiz with AI
+          </button>
+          {% if not has_ready_docs %}
+          <div class="form-text text-warning mt-1">
+            <i class="bi bi-info-circle me-1"></i>Upload at least one document first.
+          </div>
+          {% else %}
+          <div class="form-text mt-1">
+            Generates 10 questions from your {{ has_ready_docs | length }} processed document{{ 's' if has_ready_docs | length != 1 else '' }}.
+          </div>
+          {% endif %}
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

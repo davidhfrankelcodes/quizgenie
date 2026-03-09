@@ -1,0 +1,56 @@
+body {
+  background-color: #f5f6fa;
+}
+
+.container {
+  max-width: 960px;
+}
+
+/* Bucket cards */
+.bucket-card {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.bucket-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.12) !important;
+}
+
+/* Quiz question cards */
+.quiz-question {
+  border-left: 4px solid #0d6efd;
+}
+
+/* Results answer cards */
+.answer-correct {
+  border-left: 4px solid #198754;
+  background-color: rgba(25, 135, 84, 0.04);
+}
+
+.answer-incorrect {
+  border-left: 4px solid #dc3545;
+  background-color: rgba(220, 53, 69, 0.04);
+}
+
+/* Card headers */
+.card-header {
+  background-color: #f8f9fa;
+  font-weight: 600;
+}
+
+/* Navbar tweaks */
+.navbar-brand {
+  font-size: 1.25rem;
+  letter-spacing: -0.01em;
+}
+
+/* Form controls */
+.form-control:focus {
+  border-color: #86b7fe;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.2);
+}
+
+/* Progress bar label */
+.progress {
+  border-radius: 0.5rem;
+}

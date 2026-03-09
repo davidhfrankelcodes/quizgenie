@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}{{ quiz.title }} - QuizGenie{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
+    <li class="breadcrumb-item"><a href="/buckets/{{ quiz.bucket_id }}">{{ quiz.bucket.name }}</a></li>
+    <li class="breadcrumb-item active">Quiz</li>
+  </ol>
+</nav>
+
+<div class="mb-4">
+  <h1 class="h3 mb-1">
+    <i class="bi bi-patch-question me-2 text-primary"></i>{{ quiz.title }}
+  </h1>
+  <p class="text-muted mb-0">
+    {{ questions | length }} question{{ 's' if questions | length != 1 else '' }}
+    &bull; Answer all questions, then click Submit.
+  </p>
+</div>
+
+<form method="post" action="/quizzes/{{ quiz.id }}/submit/{{ attempt_id }}" novalidate>
+  {% for q in questions %}
+  <div class="card shadow-sm mb-3 quiz-question">
+    <div class="card-body">
+      <p class="fw-semibold mb-3">
+        <span class="badge bg-primary me-2">{{ loop.index }}</span>
+        {{ q.question_text }}
+      </p>
+
+      {% if q.question_type == "multiple_choice" %}
+        {% for key, val in q.options.items() %}
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="radio"
+                 name="q_{{ q.id }}" id="q{{ q.id }}_{{ key }}"
+                 value="{{ key }}" required>
+          <label class="form-check-label" for="q{{ q.id }}_{{ key }}">
+            <strong>{{ key }}.</strong> {{ val }}
+          </label>
+        </div>
+        {% endfor %}
+
+      {% elif q.question_type == "true_false" %}
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="radio"
+                 name="q_{{ q.id }}" id="q{{ q.id }}_true"
+                 value="True" required>
+          <label class="form-check-label" for="q{{ q.id }}_true">True</label>
+        </div>
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="radio"
+                 name="q_{{ q.id }}" id="q{{ q.id }}_false"
+                 value="False" required>
+          <label class="form-check-label" for="q{{ q.id }}_false">False</label>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+
+  <div class="d-flex gap-2 mt-4">
+    <button type="submit" class="btn btn-success btn-lg">
+      <i class="bi bi-check-circle me-2"></i>Submit Quiz
+    </button>
+    <a href="/buckets/{{ quiz.bucket_id }}" class="btn btn-outline-secondary btn-lg">
+      Cancel
+    </a>
+  </div>
+</form>
+{% endblock %}

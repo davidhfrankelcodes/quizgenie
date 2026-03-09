@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}New Bucket - QuizGenie{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-7 col-lg-6">
+    <nav aria-label="breadcrumb" class="mb-3">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/dashboard">Dashboard</a></li>
+        <li class="breadcrumb-item active">New Bucket</li>
+      </ol>
+    </nav>
+    <h1 class="h3 mb-4"><i class="bi bi-folder-plus me-2 text-primary"></i>Create New Bucket</h1>
+
+    {% if error %}
+    <div class="alert alert-danger">
+      <i class="bi bi-exclamation-circle me-2"></i>{{ error }}
+    </div>
+    {% endif %}
+
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <form method="post" action="/buckets/new" novalidate>
+          <div class="mb-3">
+            <label class="form-label fw-semibold" for="name">
+              Bucket Name <span class="text-danger">*</span>
+            </label>
+            <input type="text" class="form-control" id="name" name="name"
+                   placeholder="e.g. Biology Unit 3, Q2 Compliance Training" autofocus required>
+            <div class="form-text">A short, descriptive name for this collection of documents.</div>
+          </div>
+          <div class="mb-4">
+            <label class="form-label fw-semibold" for="description">Description</label>
+            <textarea class="form-control" id="description" name="description" rows="3"
+                      placeholder="Optional — describe what documents belong in this bucket..."></textarea>
+          </div>
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-folder-plus me-1"></i>Create Bucket
+            </button>
+            <a href="/dashboard" class="btn btn-outline-secondary">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
