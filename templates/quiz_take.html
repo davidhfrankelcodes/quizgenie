@@ -20,7 +20,8 @@
   </p>
 </div>
 
-<form method="post" action="/quizzes/{{ quiz.id }}/submit/{{ attempt_id }}" novalidate>
+<form method="post" action="/quizzes/{{ quiz.id }}/submit/{{ attempt_id }}" novalidate
+      data-loading="Submitting quiz…|Scoring your answers.">
   {% for q in questions %}
   <div class="card shadow-sm mb-3 quiz-question">
     <div class="card-body">

@@ -71,7 +71,8 @@
       {% endif %}
 
       <div class="card-footer">
-        <form method="post" action="/buckets/{{ bucket.id }}/upload" enctype="multipart/form-data">
+        <form method="post" action="/buckets/{{ bucket.id }}/upload" enctype="multipart/form-data"
+              data-loading="Uploading document…|Extracting text, this may take a moment.">
           <label class="form-label small fw-semibold mb-1">Upload Document</label>
           <div class="input-group">
             <input type="file" class="form-control form-control-sm" name="file"
@@ -120,7 +121,8 @@
       {% endif %}
 
       <div class="card-footer">
-        <form method="post" action="/buckets/{{ bucket.id }}/generate">
+        <form method="post" action="/buckets/{{ bucket.id }}/generate"
+              data-loading="Generating quiz with AI…|Reading your documents and writing questions. This usually takes 10–20 seconds.">
           {% set has_ready_docs = documents | selectattr("processing_status", "eq", "done") | list %}
           <button type="submit" class="btn btn-success w-100"
                   {% if not has_ready_docs %}disabled title="Upload and process documents first"{% endif %}>
