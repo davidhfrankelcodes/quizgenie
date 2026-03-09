@@ -189,7 +189,8 @@ Unless explicitly needed, avoid over-engineering the first version with:
 - id
 - bucket_id → Bucket
 - created_by → User
-- title
+- title (includes difficulty label, e.g. "Quiz: Biology Unit 3 — Hard")
+- difficulty (`easy`, `medium`, or `hard`)
 - created_at
 
 ### QuizQuestion
@@ -300,6 +301,7 @@ These were open questions that have been resolved in the current implementation:
 - **Bucket visibility:** Shared — all authenticated users see all buckets
 - **Quiz persistence:** Quizzes are generated and saved; they persist and can be retaken
 - **Question types:** Multiple choice (A/B/C/D) and true/false
+- **Quiz difficulty:** Three levels — Easy, Medium, Hard — selectable per quiz generation. Difficulty is baked into the Claude prompt and reflected in the quiz title and UI. Easy = broad recall; Medium = applied understanding and scenario reasoning; Hard = nuanced distinctions, edge cases, synthesis across the material.
 - **Answer explanations:** Shown per-question on the results page after submission
 - **Document storage:** Full extracted text stored in the database; no chunks or embeddings
 - **Document reprocessing:** Not supported in the current version

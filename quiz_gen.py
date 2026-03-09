@@ -7,7 +7,41 @@ class QuizGenerationError(Exception):
     pass
 
 
-def generate_quiz(bucket_name: str, documents_text: list[str], num_questions: int = 10) -> list[dict]:
+DIFFICULTY_LABELS = {
+    "easy": "Easy",
+    "medium": "Medium",
+    "hard": "Hard",
+}
+
+_DIFFICULTY_INSTRUCTIONS = {
+    "easy": """\
+Difficulty: EASY
+- Test broad recall of definitions, facts, and core concepts stated directly in the material.
+- Questions should be answerable by someone who read the material once and paid attention.
+- Prefer "what is", "which of the following defines", and "which statement is true" style questions.
+- Avoid ambiguity — each question should have one clearly correct answer with no close calls.
+- True/false questions should test clear, explicit factual claims.""",
+
+    "medium": """\
+Difficulty: MEDIUM
+- Test applied understanding, not just recall.
+- Questions should require connecting ideas across the material, understanding context and relationships, and reasoning about how concepts work together.
+- Include scenario-based questions: "given this situation, what would be true?" or "which approach best fits this requirement?"
+- Surface-level reading is not enough — the reader must understand the material, not just recognize keywords.
+- True/false questions should test claims that require understanding, not just memorization.""",
+
+    "hard": """\
+Difficulty: HARD
+- Test deep mastery: nuanced distinctions, edge cases, exceptions, and situations where multiple concepts interact.
+- Questions should probe the "why" and "under what conditions", not just the "what".
+- Include questions where multiple answers seem plausible but only one is correct given careful reading.
+- A reader who only skimmed the material should struggle. Only someone who studied it carefully should succeed.
+- True/false questions should test subtle or easily misunderstood claims.
+- Explanations should clearly justify why the correct answer is right and why plausible alternatives are wrong.""",
+}
+
+
+def generate_quiz(bucket_name: str, documents_text: list[str], difficulty: str = "medium", num_questions: int = 10) -> list[dict]:
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key or api_key == "sk-ant-REPLACE_ME":
         raise QuizGenerationError("ANTHROPIC_API_KEY is not configured. Set it in your .env file.")
@@ -20,12 +54,16 @@ def generate_quiz(bucket_name: str, documents_text: list[str], num_questions: in
     num_mc = max(num_questions - 2, 1)
     num_tf = num_questions - num_mc
 
+    difficulty_instructions = _DIFFICULTY_INSTRUCTIONS.get(difficulty, _DIFFICULTY_INSTRUCTIONS["medium"])
+
     prompt = f"""You are a quiz generator. Generate a quiz based ONLY on the following source material for the topic: "{bucket_name}".
 
 SOURCE MATERIAL:
 {combined}
 
 Generate exactly {num_questions} quiz questions: {num_mc} multiple choice and {num_tf} true/false.
+
+{difficulty_instructions}
 
 Respond with ONLY valid JSON (no markdown fences, no extra text) in this exact format:
 {{

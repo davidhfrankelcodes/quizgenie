@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 
 from auth import NotAuthenticated, NotAuthorized, get_current_user, hash_password
-from database import SessionLocal, create_tables, get_db
+from database import SessionLocal, create_tables, engine, get_db
 from models import Bucket, User
 from app_templates import render
 from routes.auth_routes import router as auth_router
@@ -24,6 +24,14 @@ async def lifespan(app: FastAPI):
     os.makedirs("data", exist_ok=True)
     os.makedirs("uploads", exist_ok=True)
     create_tables()
+    # Migrate: add difficulty column to quizzes table for existing databases
+    from sqlalchemy import text
+    with engine.connect() as conn:
+        try:
+            conn.execute(text("ALTER TABLE quizzes ADD COLUMN difficulty VARCHAR NOT NULL DEFAULT 'medium'"))
+            conn.commit()
+        except Exception:
+            pass  # Column already exists
     db = SessionLocal()
     try:
         if db.query(User).count() == 0:

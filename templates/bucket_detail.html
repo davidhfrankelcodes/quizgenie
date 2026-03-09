@@ -106,6 +106,12 @@
             <small class="text-muted">
               <i class="bi bi-list-ol me-1"></i>{{ quiz.questions | length }} questions
               &bull; {{ quiz.created_at.strftime("%b %d, %Y") }}
+              &bull; <span class="badge
+                {% if quiz.difficulty == 'easy' %}bg-success
+                {% elif quiz.difficulty == 'hard' %}bg-danger
+                {% else %}bg-warning text-dark{% endif %}">
+                {{ quiz.difficulty | capitalize }}
+              </span>
             </small>
           </div>
           <a href="/quizzes/{{ quiz.id }}/take" class="btn btn-sm btn-outline-primary ms-2">
@@ -121,9 +127,20 @@
       {% endif %}
 
       <div class="card-footer">
+        {% set has_ready_docs = documents | selectattr("processing_status", "eq", "done") | list %}
         <form method="post" action="/buckets/{{ bucket.id }}/generate"
               data-loading="Generating quiz with AI…|Reading your documents and writing questions. This usually takes 10–20 seconds.">
-          {% set has_ready_docs = documents | selectattr("processing_status", "eq", "done") | list %}
+          <p class="small fw-semibold mb-2">Difficulty</p>
+          <div class="btn-group w-100 mb-3" role="group">
+            <input type="radio" class="btn-check" name="difficulty" id="diff_easy" value="easy" autocomplete="off">
+            <label class="btn btn-outline-success btn-sm" for="diff_easy">Easy</label>
+
+            <input type="radio" class="btn-check" name="difficulty" id="diff_medium" value="medium" autocomplete="off" checked>
+            <label class="btn btn-outline-warning btn-sm" for="diff_medium">Medium</label>
+
+            <input type="radio" class="btn-check" name="difficulty" id="diff_hard" value="hard" autocomplete="off">
+            <label class="btn btn-outline-danger btn-sm" for="diff_hard">Hard</label>
+          </div>
           <button type="submit" class="btn btn-success w-100"
                   {% if not has_ready_docs %}disabled title="Upload and process documents first"{% endif %}>
             <i class="bi bi-magic me-2"></i>Generate Quiz with AI

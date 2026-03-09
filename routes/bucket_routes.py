@@ -10,7 +10,7 @@ from auth import get_current_user
 from database import get_db
 from models import Bucket, Document, Quiz, QuizQuestion, User
 from text_extract import extract_text
-from quiz_gen import generate_quiz, QuizGenerationError
+from quiz_gen import generate_quiz, QuizGenerationError, DIFFICULTY_LABELS
 from app_templates import render
 
 router = APIRouter()
@@ -119,9 +119,13 @@ async def upload_document(
 async def generate_quiz_route(
     bucket_id: int,
     request: Request,
+    difficulty: str = Form("medium"),
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    if difficulty not in DIFFICULTY_LABELS:
+        difficulty = "medium"
+
     bucket = db.query(Bucket).filter(Bucket.id == bucket_id).first()
     if not bucket:
         return RedirectResponse("/?msg=not_found", status_code=302)
@@ -132,14 +136,16 @@ async def generate_quiz_route(
 
     texts = [d.extracted_text for d in docs]
     try:
-        questions = generate_quiz(bucket.name, texts)
+        questions = generate_quiz(bucket.name, texts, difficulty=difficulty)
     except QuizGenerationError:
         return RedirectResponse(f"/buckets/{bucket_id}?msg=quiz_failed", status_code=302)
 
+    label = DIFFICULTY_LABELS[difficulty]
     quiz = Quiz(
         bucket_id=bucket_id,
         created_by=user.id,
-        title=f"Quiz: {bucket.name}",
+        title=f"Quiz: {bucket.name} — {label}",
+        difficulty=difficulty,
     )
     db.add(quiz)
     db.flush()

@@ -20,7 +20,13 @@
       {% if score_pct >= 80 %}text-success{% elif score_pct >= 60 %}text-warning{% else %}text-danger{% endif %}">
       {{ score_pct }}%
     </div>
-    <p class="lead mb-3">{{ correct_count }} out of {{ total }} correct</p>
+    <p class="lead mb-2">{{ correct_count }} out of {{ total }} correct</p>
+    <span class="badge mb-3
+      {% if quiz.difficulty == 'easy' %}bg-success
+      {% elif quiz.difficulty == 'hard' %}bg-danger
+      {% else %}bg-warning text-dark{% endif %}">
+      {{ quiz.difficulty | capitalize }} difficulty
+    </span>
     <div class="progress mx-auto mb-3" style="max-width: 400px; height: 12px;">
       <div class="progress-bar
         {% if score_pct >= 80 %}bg-success{% elif score_pct >= 60 %}bg-warning{% else %}bg-danger{% endif %}"

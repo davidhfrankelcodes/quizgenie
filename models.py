@@ -57,6 +57,8 @@ class Quiz(Base):
     title = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
+    difficulty = Column(String, nullable=False, default="medium")  # easy, medium, hard
+
     bucket = relationship("Bucket", back_populates="quizzes")
     creator = relationship("User")
     questions = relationship(

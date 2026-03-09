@@ -16,6 +16,12 @@
   </h1>
   <p class="text-muted mb-0">
     {{ questions | length }} question{{ 's' if questions | length != 1 else '' }}
+    &bull; <span class="badge
+      {% if quiz.difficulty == 'easy' %}bg-success
+      {% elif quiz.difficulty == 'hard' %}bg-danger
+      {% else %}bg-warning text-dark{% endif %}">
+      {{ quiz.difficulty | capitalize }}
+    </span>
     &bull; Answer all questions, then click Submit.
   </p>
 </div>
