@@ -76,7 +76,7 @@ class QuizQuestion(Base):
     id = Column(Integer, primary_key=True, index=True)
     quiz_id = Column(Integer, ForeignKey("quizzes.id"), nullable=False)
     question_text = Column(Text, nullable=False)
-    question_type = Column(String, nullable=False)  # multiple_choice, true_false
+    question_type = Column(String, nullable=False)  # multiple_choice (true_false exists only in legacy data)
     options_json = Column(Text, nullable=False, default="{}")
     answer_key = Column(String, nullable=False)
     explanation = Column(Text, nullable=True)

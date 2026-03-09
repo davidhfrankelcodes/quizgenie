@@ -6,8 +6,8 @@ A document-to-quiz platform. Upload your documents into a **bucket**, generate a
 
 1. Create a **bucket** — a named collection of related documents (e.g. "Biology Unit 3", "Q2 Compliance Training")
 2. Upload documents into the bucket (PDF, DOCX, or TXT)
-3. Click **Generate Quiz with AI** — Claude reads your documents and writes questions grounded in that content
-4. Take the quiz and review your results with explanations
+3. Click **Generate Quiz with AI** — choose a difficulty (Easy / Medium / Hard) and Claude writes questions grounded in that content
+4. Take the quiz — use the per-question **Check** button for immediate feedback before submitting, then review your full results with explanations
 
 Quizzes are always based on *your* documents, not general model knowledge.
 

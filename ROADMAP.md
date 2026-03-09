@@ -22,7 +22,8 @@ The initial working application, end-to-end.
 - Three difficulty levels — Easy, Medium, Hard — each with distinct prompt instructions
 - Difficulty label baked into quiz title for easy identification
 - Quizzes persist and can be retaken any number of times
-- Loading overlays during upload, generation, and submission
+- Per-question Check button: select an answer to unlock Check, click to see immediate correct/incorrect feedback, locks in the choice and reveals the correct answer before submitting
+- Loading overlays during upload, generation, and submission — with an ascending elapsed-time counter
 - Deterministic server-side scoring (answer comparison)
 - Results page: score, progress bar, per-question correct/incorrect with explanations
 

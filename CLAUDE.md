@@ -91,7 +91,7 @@ The application should be able to:
 - avoid generating questions that are not supported by the bucket content
 - support iterative improvement of quiz quality over time
 
-Question format: multiple choice (A/B/C/D), 10 questions per quiz.
+Question format: multiple choice (A/B/C/D), 10 questions per quiz, at one of three difficulty levels (Easy, Medium, Hard). Difficulty is chosen at generation time and is reflected in the quiz title.
 
 #### Evaluation
 The application should:
@@ -119,9 +119,9 @@ The intended user flow is:
 1. User creates a bucket
 2. User uploads related documents into that bucket
 3. The app processes those documents into usable text/content units
-4. The app generates quizzes based on that bucket
-5. The user takes a quiz
-6. The app evaluates the outcome based on the content in the bucket
+4. User selects a difficulty level and the app generates a quiz based on that bucket
+5. The user takes the quiz — per-question Check feedback reveals correctness before submitting
+6. The app evaluates and scores the submission; results show per-question breakdowns with explanations
 
 ---
 
