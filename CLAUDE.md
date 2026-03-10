@@ -242,6 +242,7 @@ Unless explicitly needed, avoid over-engineering the first version with:
   - take a quiz
   - review results
 - Admin functionality should be present but not clutter the core flow
+- **Never use native browser dialogs** (`alert`, `confirm`, `prompt`). All confirmations and messages must use Bootstrap modals or inline UI that matches the site's visual style.
 
 ---
 

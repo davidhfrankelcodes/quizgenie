@@ -15,6 +15,7 @@ The initial working application, end-to-end.
 - Create buckets with name and optional description
 - Upload documents (PDF, DOCX, TXT) — text extracted immediately on upload
 - Per-document processing status (pending / done / error)
+- Delete documents — removes the file from disk and the DB record, with confirmation
 - All buckets visible to all authenticated users (shared workspace)
 
 ### Quiz Generation & Taking
@@ -40,7 +41,6 @@ The initial working application, end-to-end.
 Gaps that affect basic day-to-day usability.
 
 ### Content management
-- **Delete documents** — remove a document from a bucket; re-extract if needed
 - **Delete buckets** — with confirmation; cascades to documents and quizzes
 - **Document re-extraction** — retry text extraction for documents that errored
 

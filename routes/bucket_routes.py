@@ -115,6 +115,28 @@ async def upload_document(
     return RedirectResponse(f"/buckets/{bucket_id}?msg=uploaded", status_code=302)
 
 
+@router.post("/{bucket_id}/documents/{doc_id}/delete")
+async def delete_document(
+    bucket_id: int,
+    doc_id: int,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    doc = db.query(Document).filter(
+        Document.id == doc_id,
+        Document.bucket_id == bucket_id,
+    ).first()
+    if not doc:
+        return RedirectResponse(f"/buckets/{bucket_id}?msg=not_found", status_code=302)
+
+    if os.path.exists(doc.stored_path):
+        os.remove(doc.stored_path)
+
+    db.delete(doc)
+    db.commit()
+    return RedirectResponse(f"/buckets/{bucket_id}", status_code=302)
+
+
 @router.post("/{bucket_id}/generate")
 async def generate_quiz_route(
     bucket_id: int,

@@ -47,18 +47,26 @@
               {% endif %}
               <span title="{{ doc.filename }}">{{ doc.filename }}</span>
             </div>
-            <span class="badge flex-shrink-0
-              {% if doc.processing_status == 'done' %}bg-success
-              {% elif doc.processing_status == 'error' %}bg-danger
-              {% else %}bg-warning text-dark{% endif %}">
-              {% if doc.processing_status == 'done' %}
-              <i class="bi bi-check me-1"></i>ready
-              {% elif doc.processing_status == 'error' %}
-              <i class="bi bi-x me-1"></i>error
-              {% else %}
-              <i class="bi bi-hourglass-split me-1"></i>pending
-              {% endif %}
-            </span>
+            <div class="d-flex align-items-center gap-2 flex-shrink-0">
+              <span class="badge
+                {% if doc.processing_status == 'done' %}bg-success
+                {% elif doc.processing_status == 'error' %}bg-danger
+                {% else %}bg-warning text-dark{% endif %}">
+                {% if doc.processing_status == 'done' %}
+                <i class="bi bi-check me-1"></i>ready
+                {% elif doc.processing_status == 'error' %}
+                <i class="bi bi-x me-1"></i>error
+                {% else %}
+                <i class="bi bi-hourglass-split me-1"></i>pending
+                {% endif %}
+              </span>
+              <button type="button" class="btn btn-outline-danger btn-sm py-0 px-1" title="Delete"
+                      data-bs-toggle="modal" data-bs-target="#deleteDocModal"
+                      data-action="/buckets/{{ bucket.id }}/documents/{{ doc.id }}/delete"
+                      data-filename="{{ doc.filename }}">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
           </div>
           <small class="text-muted">{{ doc.created_at.strftime("%b %d, %Y %H:%M") }}</small>
         </li>
@@ -159,4 +167,40 @@
     </div>
   </div>
 </div>
+
+<!-- Delete document confirmation modal -->
+<div class="modal fade" id="deleteDocModal" tabindex="-1" aria-labelledby="deleteDocModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteDocModalLabel">
+          <i class="bi bi-trash text-danger me-2"></i>Delete Document
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-1">Are you sure you want to delete <strong id="deleteDocName"></strong>?</p>
+        <p class="text-danger small mb-0"><i class="bi bi-exclamation-triangle me-1"></i>This cannot be undone.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <form id="deleteDocForm" method="post">
+          <button type="submit" class="btn btn-danger">
+            <i class="bi bi-trash me-1"></i>Delete
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.getElementById('deleteDocModal').addEventListener('show.bs.modal', function (e) {
+    var btn = e.relatedTarget;
+    document.getElementById('deleteDocName').textContent = btn.dataset.filename;
+    document.getElementById('deleteDocForm').action = btn.dataset.action;
+  });
+</script>
 {% endblock %}
