@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import shutil
 import uuid
 from fastapi import APIRouter, Depends, File, Form, Request, UploadFile
 from fastapi.responses import RedirectResponse
@@ -113,6 +114,25 @@ async def upload_document(
     db.commit()
 
     return RedirectResponse(f"/buckets/{bucket_id}?msg=uploaded", status_code=302)
+
+
+@router.post("/{bucket_id}/delete")
+async def delete_bucket(
+    bucket_id: int,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    bucket = db.query(Bucket).filter(Bucket.id == bucket_id).first()
+    if not bucket:
+        return RedirectResponse("/?msg=not_found", status_code=302)
+
+    bucket_dir = os.path.join(UPLOAD_DIR, str(bucket_id))
+    if os.path.isdir(bucket_dir):
+        shutil.rmtree(bucket_dir)
+
+    db.delete(bucket)
+    db.commit()
+    return RedirectResponse("/dashboard", status_code=302)
 
 
 @router.post("/{bucket_id}/documents/{doc_id}/delete")

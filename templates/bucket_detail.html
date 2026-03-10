@@ -9,16 +9,22 @@
   </ol>
 </nav>
 
-<div class="mb-4">
-  <h1 class="h3 mb-1">
-    <i class="bi bi-folder2-open me-2 text-primary"></i>{{ bucket.name }}
-  </h1>
-  {% if bucket.description %}
-  <p class="text-muted mb-0">{{ bucket.description }}</p>
-  {% endif %}
-  <small class="text-muted">
-    Created by {{ bucket.creator.username }} on {{ bucket.created_at.strftime("%B %d, %Y") }}
-  </small>
+<div class="mb-4 d-flex justify-content-between align-items-start">
+  <div>
+    <h1 class="h3 mb-1">
+      <i class="bi bi-folder2-open me-2 text-primary"></i>{{ bucket.name }}
+    </h1>
+    {% if bucket.description %}
+    <p class="text-muted mb-0">{{ bucket.description }}</p>
+    {% endif %}
+    <small class="text-muted">
+      Created by {{ bucket.creator.username }} on {{ bucket.created_at.strftime("%B %d, %Y") }}
+    </small>
+  </div>
+  <button type="button" class="btn btn-outline-danger btn-sm"
+          data-bs-toggle="modal" data-bs-target="#deleteBucketModal">
+    <i class="bi bi-trash me-1"></i>Delete Bucket
+  </button>
 </div>
 
 <div class="row g-4">
@@ -162,6 +168,37 @@
             Generates 10 questions from your {{ has_ready_docs | length }} processed document{{ 's' if has_ready_docs | length != 1 else '' }}.
           </div>
           {% endif %}
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete bucket confirmation modal -->
+<div class="modal fade" id="deleteBucketModal" tabindex="-1" aria-labelledby="deleteBucketModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteBucketModalLabel">
+          <i class="bi bi-trash text-danger me-2"></i>Delete Bucket
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-1">Are you sure you want to delete <strong>{{ bucket.name }}</strong>?</p>
+        <p class="text-danger small mb-0">
+          <i class="bi bi-exclamation-triangle me-1"></i>This will permanently delete all
+          {{ documents | length }} document{{ 's' if documents | length != 1 else '' }} and
+          {{ quizzes | length }} quiz{{ 'zes' if quizzes | length != 1 else '' }} in this bucket.
+          This cannot be undone.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <form method="post" action="/buckets/{{ bucket.id }}/delete">
+          <button type="submit" class="btn btn-danger">
+            <i class="bi bi-trash me-1"></i>Delete Bucket
+          </button>
         </form>
       </div>
     </div>

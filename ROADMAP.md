@@ -16,6 +16,7 @@ The initial working application, end-to-end.
 - Upload documents (PDF, DOCX, TXT) — text extracted immediately on upload
 - Per-document processing status (pending / done / error)
 - Delete documents — removes the file from disk and the DB record, with confirmation
+- Delete buckets — cascades to all documents, quizzes, and attempt history; removes uploaded files from disk, with confirmation
 - All buckets visible to all authenticated users (shared workspace)
 
 ### Quiz Generation & Taking
@@ -41,7 +42,6 @@ The initial working application, end-to-end.
 Gaps that affect basic day-to-day usability.
 
 ### Content management
-- **Delete buckets** — with confirmation; cascades to documents and quizzes
 - **Document re-extraction** — retry text extraction for documents that errored
 
 ### Quiz improvements
