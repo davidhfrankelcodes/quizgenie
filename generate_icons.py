@@ -1,120 +1,132 @@
 """
-One-time script to generate PWA icons from the QuizGenie brand colors.
-Produces apple-touch-icon.png (180x180) and icon-512.png (512x512).
+Generates all QuizGenie icons from a single set of normalized coordinates.
+Produces:
+  static/favicon.svg          (vector, any size)
+  static/apple-touch-icon.png (180x180  – iOS home screen)
+  static/icon-192.png         (192x192  – PWA manifest)
+  static/icon-512.png         (512x512  – PWA manifest hi-res)
 
 Run with:  python generate_icons.py
-Requires no third-party dependencies.
+Requires:  Pillow  (pip install Pillow)
 """
 
 import os
-import struct
-import zlib
-import math
+from PIL import Image, ImageDraw
 
-# QuizGenie brand blue  (#0d6efd)
-BG_R, BG_G, BG_B = 13, 110, 253
+# ── Brand colour ───────────────────────────────────────────────────────────
+BLUE = (13, 110, 253)       # #0d6efd  Bootstrap primary
+WHITE = (255, 255, 255)
 
-OUT_DIR = os.path.join(os.path.dirname(__file__), "static")
+OUT = os.path.join(os.path.dirname(__file__), "static")
 
+# ── Design in normalised 0–100 units ──────────────────────────────────────
+# All shapes are defined here once; both SVG and PNG renderers use them.
 
-def make_png(width: int, height: int, pixels: list[tuple[int, int, int]]) -> bytes:
-    """Encode a list of (r, g, b) pixels into a minimal PNG bytestring."""
+# Background rounded-corner radius as % of icon size
+BG_RADIUS_PCT = 0.22
 
-    def chunk(tag: bytes, data: bytes) -> bytes:
-        raw = tag + data
-        return (
-            struct.pack(">I", len(data))
-            + raw
-            + struct.pack(">I", zlib.crc32(raw) & 0xFFFFFFFF)
-        )
+# Mortarboard board (diamond / rhombus)
+# Four corners in normalised coords: top, right, bottom, left
+DIAMOND = [
+    (50.0, 22.0),   # top
+    (80.0, 34.0),   # right
+    (50.0, 46.0),   # bottom
+    (20.0, 34.0),   # left
+]
 
-    sig = b"\x89PNG\r\n\x1a\n"
-    ihdr = chunk(
-        b"IHDR",
-        struct.pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0),
-    )
+# Cap body (trapezoid below the diamond)
+CAP = [
+    (31.0, 49.0),   # top-left
+    (69.0, 49.0),   # top-right
+    (76.0, 74.0),   # bottom-right
+    (24.0, 74.0),   # bottom-left
+]
 
-    raw_rows = bytearray()
-    for y in range(height):
-        raw_rows.append(0)  # filter type: None
-        for x in range(width):
-            r, g, b = pixels[y * width + x]
-            raw_rows += bytes([r, g, b])
-
-    idat = chunk(b"IDAT", zlib.compress(bytes(raw_rows), 9))
-    iend = chunk(b"IEND", b"")
-    return sig + ihdr + idat + iend
+# Tassel: a thin vertical rectangle hanging from the right diamond corner
+# (right diamond corner is at 80, 34)
+TASSEL_RECT = (78.0, 34.0, 82.5, 62.0)   # x0, y0, x1, y1
+TASSEL_BOB  = (74.5, 62.0, 86.0, 73.5)   # bounding box of the end circle
 
 
-def draw_icon(size: int) -> list[tuple[int, int, int]]:
-    """
-    Draw the QuizGenie icon at the given square pixel size.
-    Blue background + simple white mortarboard shape.
-    """
-    pixels = [(BG_R, BG_G, BG_B)] * (size * size)
+# ── PNG renderer (Pillow) ─────────────────────────────────────────────────
 
-    cx = size / 2
-    cy = size / 2
+def scale(pts, s):
+    """Scale a list of (x, y) tuples from 0-100 space to pixel space."""
+    return [(x * s / 100, y * s / 100) for x, y in pts]
 
-    # Scale factor: design is normalised to a 32x32 grid
-    scale = size / 32.0
+def scale_rect(r, s):
+    x0, y0, x1, y1 = r
+    f = s / 100
+    return [x0 * f, y0 * f, x1 * f, y1 * f]
 
-    def set_px(x: int, y: int) -> None:
-        if 0 <= x < size and 0 <= y < size:
-            pixels[y * size + x] = (255, 255, 255)
+def make_png(size: int) -> Image.Image:
+    img = Image.new("RGB", (size, size), BLUE)
+    draw = ImageDraw.Draw(img)
 
-    def fill_rect(fx: float, fy: float, fw: float, fh: float) -> None:
-        x0 = round(fx * scale)
-        y0 = round(fy * scale)
-        x1 = round((fx + fw) * scale)
-        y1 = round((fy + fh) * scale)
-        for yy in range(y0, y1):
-            for xx in range(x0, x1):
-                set_px(xx, yy)
+    # Rounded background (overwrite with blue, then draw shapes on top)
+    radius = int(size * BG_RADIUS_PCT)
+    # Fill corners with white first so we can mask them back to blue
+    # Simpler: draw a white full rect, then re-draw a blue rounded rect
+    draw.rectangle([0, 0, size, size], fill=WHITE)
+    draw.rounded_rectangle([0, 0, size - 1, size - 1], radius=radius, fill=BLUE)
 
-    def fill_diamond(fx: float, fy: float, fw: float, fh: float) -> None:
-        """Fill an axis-aligned ellipse (approximated as filled diamond)."""
-        x0 = fx * scale
-        y0 = fy * scale
-        rx = (fw / 2) * scale
-        ry = (fh / 2) * scale
-        ccx = x0 + rx
-        ccy = y0 + ry
-        for yy in range(round(y0), round(y0 + fh * scale) + 1):
-            for xx in range(round(x0), round(x0 + fw * scale) + 1):
-                dx = (xx - ccx) / rx if rx else 0
-                dy = (yy - ccy) / ry if ry else 0
-                if dx * dx + dy * dy <= 1.0:
-                    set_px(xx, yy)
+    s = size
+    draw.polygon(scale(DIAMOND, s), fill=WHITE)
+    draw.polygon(scale(CAP, s), fill=WHITE)
+    draw.rectangle(scale_rect(TASSEL_RECT, s), fill=WHITE)
+    draw.ellipse(scale_rect(TASSEL_BOB, s), fill=WHITE)
 
-    # ── Mortarboard top (diamond / rhombus shape) ──────────────────────────
-    # SVG path approximation: a wide flat diamond centred at (16, 8)
-    fill_diamond(6, 3.5, 20, 7)
-
-    # ── Vertical pole ──────────────────────────────────────────────────────
-    fill_rect(15, 10, 2, 5)
-
-    # ── Cap (tassel base) ──────────────────────────────────────────────────
-    fill_rect(13, 15, 6, 2)
-
-    # ── Hat brim / lower band ──────────────────────────────────────────────
-    fill_diamond(7, 14, 18, 5)
-
-    return pixels
+    return img
 
 
-def save(path: str, size: int) -> None:
-    pixels = draw_icon(size)
-    png_bytes = make_png(size, size, pixels)
-    with open(path, "wb") as f:
-        f.write(png_bytes)
-    print(f"  wrote {path}  ({size}×{size}, {len(png_bytes):,} bytes)")
+def save_png(path: str, size: int) -> None:
+    img = make_png(size)
+    img.save(path, "PNG", optimize=True)
+    print(f"  wrote {path}  ({size}×{size})")
 
+
+# ── SVG renderer ───────────────────────────────────────────────────────────
+
+def pts_to_svg(pts):
+    return " ".join(f"{x:.2f},{y:.2f}" for x, y in pts)
+
+def make_svg() -> str:
+    # SVG uses the same 100×100 coordinate space directly
+    vb = 100
+    rx = vb * BG_RADIUS_PCT
+
+    d_pts = pts_to_svg(DIAMOND)
+    c_pts = pts_to_svg(CAP)
+
+    tx0, ty0, tx1, ty1 = TASSEL_RECT
+    bx0, by0, bx1, by1 = TASSEL_BOB
+    bcx = (bx0 + bx1) / 2
+    bcy = (by0 + by1) / 2
+    br  = (bx1 - bx0) / 2
+
+    return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {vb} {vb}">
+  <rect width="{vb}" height="{vb}" rx="{rx:.2f}" fill="#0d6efd"/>
+  <polygon points="{d_pts}" fill="white"/>
+  <polygon points="{c_pts}" fill="white"/>
+  <rect x="{tx0:.2f}" y="{ty0:.2f}" width="{tx1-tx0:.2f}" height="{ty1-ty0:.2f}" fill="white"/>
+  <circle cx="{bcx:.2f}" cy="{bcy:.2f}" r="{br:.2f}" fill="white"/>
+</svg>
+"""
+
+
+def save_svg(path: str) -> None:
+    with open(path, "w") as f:
+        f.write(make_svg())
+    print(f"  wrote {path}  (SVG)")
+
+
+# ── Main ───────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    os.makedirs(OUT_DIR, exist_ok=True)
-    print("Generating QuizGenie PWA icons...")
-    save(os.path.join(OUT_DIR, "apple-touch-icon.png"), 180)
-    save(os.path.join(OUT_DIR, "icon-192.png"), 192)
-    save(os.path.join(OUT_DIR, "icon-512.png"), 512)
+    os.makedirs(OUT, exist_ok=True)
+    print("Generating QuizGenie icons…")
+    save_svg(os.path.join(OUT, "favicon.svg"))
+    save_png(os.path.join(OUT, "apple-touch-icon.png"), 180)
+    save_png(os.path.join(OUT, "icon-192.png"), 192)
+    save_png(os.path.join(OUT, "icon-512.png"), 512)
     print("Done.")
