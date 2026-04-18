@@ -7,5 +7,5 @@ templates.env.filters["fromjson"] = json.loads
 
 
 def render(request: Request, template_name: str, ctx: dict, current_user=None):
-    ctx.update({"request": request, "current_user": current_user})
-    return templates.TemplateResponse(template_name, ctx)
+    ctx.update({"current_user": current_user})
+    return templates.TemplateResponse(request, template_name, ctx)
